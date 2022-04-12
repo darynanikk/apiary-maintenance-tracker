@@ -35,7 +35,6 @@ class UserManager(BaseUserManager):
 
 
 class User(AbstractUser, PermissionsMixin):
-
     class Roles(models.TextChoices):
         COOL = "cool"
         AWESOME = "awesome"
@@ -49,6 +48,7 @@ class User(AbstractUser, PermissionsMixin):
     password = models.CharField(max_length=255, blank=False, unique=True)
     role = models.CharField(max_length=40, choices=Roles.choices, default="simple")
     created_at = models.DateTimeField(auto_now_add=True)
+    is_active = models.BooleanField(default=True)
 
     objects = UserManager()
 
