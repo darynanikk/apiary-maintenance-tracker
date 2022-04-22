@@ -42,10 +42,11 @@ class User(AbstractUser, PermissionsMixin):
 
     email = models.EmailField(max_length=40, unique=True, blank=False)
     username = None
+    is_verified = models.BooleanField(default=False)
     first_name = models.CharField(max_length=30)
     last_name = models.CharField(max_length=30)
     phone = PhoneNumberField()
-    password = models.CharField(max_length=255, blank=False, unique=True)
+    password = models.CharField(max_length=255, blank=False)
     role = models.CharField(max_length=40, choices=Roles.choices, default="simple")
     created_at = models.DateTimeField(auto_now_add=True)
     is_active = models.BooleanField(default=True)

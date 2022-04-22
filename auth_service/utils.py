@@ -22,16 +22,23 @@ class Util:
         msg.send()
 
     @classmethod
-    def generate_confirmation_token(cls, email, user_id):
+    def generate_confirmation_token(cls, email, option):
+        if option == 'activate':
+            secret_password_salt = settings.SECURITY_PASSWORD_SALT_ACTIVATE
+        else:
+            secret_password_salt = settings.SECURITY_PASSWORD_SALT_RESET
         secret_key = settings.SECRET_KEY
-        secret_password_salt = settings.SECURITY_PASSWORD_SALT
         serializer = URLSafeTimedSerializer(secret_key)
         token = serializer.dumps({'email': email}, salt=secret_password_salt)
         return token
 
     @classmethod
-    def confirm_token(cls, token, expiration=3600):
-        serializer = URLSafeTimedSerializer(settings.SECURITY_PASSWORD_SALT)
+    def confirm_token(cls, token, option, expiration=3600):
+        if option == 'activate':
+            secret_password_salt = settings.SECURITY_PASSWORD_SALT_ACTIVATE
+        else:
+            secret_password_salt = settings.SECURITY_PASSWORD_SALT_RESET
+        serializer = URLSafeTimedSerializer(secret_password_salt)
         try:
             payload = serializer.loads(
                 token,
