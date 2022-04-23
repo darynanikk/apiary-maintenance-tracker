@@ -138,6 +138,7 @@ REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
             'rest_framework_simplejwt.authentication.JWTAuthentication',
         ],
+    'TEST_REQUEST_DAFAULT_FORMAT': 'json'
 }
 
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'

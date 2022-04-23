@@ -1,0 +1,10 @@
+{
+  "user": {
+        "email":"test@gmail.com",
+        "first_name": "Test first name",
+        "last_name": "Test last name",
+        "phone": "+1 202-918-2132",
+        "password": "2F9SK32mkgJSrWfK",
+        "role":"cool"
+  }
+}
