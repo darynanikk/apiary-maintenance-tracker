@@ -33,8 +33,10 @@ INSTALLED_APPS = [
     'phonenumber_field',
     'django_filters',
     'django_rest_passwordreset',
+    'rest_framework_simplejwt',
 
     'users',
+    'auth_service'
 ]
 
 MIDDLEWARE = [
@@ -123,20 +125,13 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 AUTH_USER_MODEL = 'users.User'
 
-SIMPLE_JWT = {
-    'AUTH_HEADER_TYPES': ('Bearer',),
-    'AUTH_HEADER_NAME': 'HTTP_AUTHORIZATION',
-    'USER_ID_FIELD': 'email',
-    'USER_ID_CLAIM': 'id',
-    'USER_AUTHENTICATION_RULE': 'rest_framework_simplejwt.authentication.default_user_authentication_rule',
-}
-
 REST_FRAMEWORK = {
     'DEFAULT_FILTER_BACKENDS': [
             'django_filters.rest_framework.DjangoFilterBackend'
         ],
     'DEFAULT_AUTHENTICATION_CLASSES': [
             'rest_framework_simplejwt.authentication.JWTAuthentication',
+            'rest_framework_simplejwt.authentication.JWTStatelessUserAuthentication',
         ],
     'TEST_REQUEST_DAFAULT_FORMAT': 'json'
 }

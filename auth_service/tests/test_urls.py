@@ -26,5 +26,3 @@ class TestUrls(SimpleTestCase):
     def test_set_new_password_url_resolves(self):
         url = reverse('password-reset-complete')
         self.assertEquals(resolve(url).func.view_class, SetNewPasswordAPIView)
-
-    # TODO with token

@@ -1,13 +1,18 @@
-from itsdangerous import URLSafeTimedSerializer
-from itsdangerous.exc import BadSignature, BadData
-from apiary_maintenance_service import settings
+from django.contrib.auth import authenticate
+from django.contrib.auth.models import update_last_login
+from rest_framework import serializers
+from rest_framework.exceptions import AuthenticationFailed
+from rest_framework_simplejwt.authentication import JWTAuthentication
+from rest_framework_simplejwt.exceptions import InvalidToken
+from rest_framework_simplejwt.tokens import RefreshToken
 from django.core.mail import EmailMessage
+
+from users.models import User
 
 
 class Util:
     @classmethod
     def send_email(cls, data):
-        # TODO
         subject = data['email_subject']
         receiver = data['to_email']
         message = data['email_body']
@@ -22,38 +27,43 @@ class Util:
         msg.send()
 
     @classmethod
-    def generate_confirmation_token(cls, email, option):
-        if option == 'activate':
-            secret_password_salt = settings.SECURITY_PASSWORD_SALT_ACTIVATE
-        else:
-            secret_password_salt = settings.SECURITY_PASSWORD_SALT_RESET
-        secret_key = settings.SECRET_KEY
-        serializer = URLSafeTimedSerializer(secret_key)
-        token = serializer.dumps({'email': email}, salt=secret_password_salt)
-        return token
+    def get_access(cls, user):
+        try:
+            refresh = RefreshToken.for_user(user)
+            refresh_token = str(refresh)
+            access_token = str(refresh.access_token)
+
+            update_last_login(None, user)
+
+            validation = {
+                'access': access_token,
+                'refresh': refresh_token,
+                'email': user.email,
+                'role': user.role,
+            }
+            return validation
+        except User.DoesNotExist:
+            raise serializers.ValidationError('Credentials are incorrect.Check password or email.', 401)
 
     @classmethod
-    def confirm_token(cls, token, option, expiration=3600):
-        if option == 'activate':
-            secret_password_salt = settings.SECURITY_PASSWORD_SALT_ACTIVATE
-        else:
-            secret_password_salt = settings.SECURITY_PASSWORD_SALT_RESET
-        serializer = URLSafeTimedSerializer(secret_password_salt)
+    def get_validated_user(cls, email, password):
+        user = authenticate(email=email, password=password)
+        if user is None:
+            raise serializers.ValidationError('Credentials are invalid.', 401)
+        return user
+
+    @classmethod
+    def confirm_token(cls, token):
+        jwt_authenticator = JWTAuthentication()
         try:
-            payload = serializer.loads(
-                token,
-                salt=settings.SECURITY_PASSWORD_SALT,
-                max_age=expiration
-            )
-        except BadSignature as e:
-            if e.payload is not None:
-                try:
-                    # This payload is decoded but unsafe because someone
-                    # tampered with the signature.
-                    return serializer.load_payload(e.payload)['email']
-                except BadData:
-                    return False
-            else:
-                return False
-        else:
-            return payload['email']
+            validated_token = jwt_authenticator.get_validated_token(token)
+            email = jwt_authenticator.get_user(validated_token)
+            user = User.objects.get(email=email)
+            if not user.is_verified:
+                user.is_verified = True
+                user.save()
+            return user
+        except InvalidToken:
+            raise
+        except AuthenticationFailed:
+            raise
