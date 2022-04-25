@@ -1,9 +1,8 @@
 from django.test import SimpleTestCase
 from django.urls import reverse, resolve
 from auth_service.views import (CreateUserAPIView, LoginAPIView,
-                                VerifyEmail, ForgotPasswordView,
-                                PasswordTokenCheckAPI, SetNewPasswordAPIView
-                                )
+                                VerifyEmail, ForgotPasswordView, SetNewPasswordAPIView)
+
 
 class TestUrls(SimpleTestCase):
 
@@ -24,5 +23,5 @@ class TestUrls(SimpleTestCase):
         self.assertEquals(resolve(url).func.view_class, ForgotPasswordView)
 
     def test_set_new_password_url_resolves(self):
-        url = reverse('password-reset-complete')
+        url = reverse('password-reset-confirm')
         self.assertEquals(resolve(url).func.view_class, SetNewPasswordAPIView)

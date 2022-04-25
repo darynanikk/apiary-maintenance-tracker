@@ -32,8 +32,8 @@ INSTALLED_APPS = [
     'rest_framework',
     'phonenumber_field',
     'django_filters',
-    'django_rest_passwordreset',
     'rest_framework_simplejwt',
+    'rest_framework_simplejwt.token_blacklist',
 
     'users',
     'auth_service'
