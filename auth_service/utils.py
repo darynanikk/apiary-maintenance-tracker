@@ -32,12 +32,16 @@ class Util:
             refresh = RefreshToken.for_user(user)
             refresh_token = str(refresh)
             access_token = str(refresh.access_token)
+            phone = str(user.phone)
 
             update_last_login(None, user)
 
             validation = {
                 'access': access_token,
                 'refresh': refresh_token,
+                'first_name': user.first_name,
+                'last_name': user.last_name,
+                'phone': phone,
                 'email': user.email,
                 'role': user.role,
             }

@@ -36,9 +36,10 @@ class UserManager(BaseUserManager):
 
 class User(AbstractUser, PermissionsMixin):
     class Roles(models.TextChoices):
-        COOL = "cool"
-        AWESOME = "awesome"
-        SUPERB = "superb"
+        USER = "user"
+        COMPANY = "company"
+        ADMIN = "admin"
+        MANAGER = "manager"
 
     email = models.EmailField(max_length=40, unique=True, blank=False)
     username = None
@@ -47,7 +48,7 @@ class User(AbstractUser, PermissionsMixin):
     last_name = models.CharField(max_length=30, blank=False)
     phone = PhoneNumberField()
     password = models.CharField(max_length=255, blank=False)
-    role = models.CharField(max_length=40, choices=Roles.choices, default="simple")
+    role = models.CharField(max_length=40, choices=Roles.choices, default="user")
     created_at = models.DateTimeField(auto_now_add=True)
     is_active = models.BooleanField(default=True)
     objects = UserManager()
