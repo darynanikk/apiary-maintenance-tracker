@@ -2,8 +2,7 @@ from rest_framework import serializers
 from apiaries.models import Apiary
 
 
-class CreateApiarySerializer(serializers.ModelSerializer):
-    user = serializers.ReadOnlyField()
+class CreateUpdateDestroyApiarySerializer(serializers.ModelSerializer):
     status = serializers.ReadOnlyField()
     location = serializers.ReadOnlyField()
 
@@ -13,7 +12,6 @@ class CreateApiarySerializer(serializers.ModelSerializer):
                   'isHidden',
                   'status',
                   'location',
-                  'user'
                   ]
 
 
