@@ -1,12 +1,14 @@
-from django.urls import path
+from django.urls import path, include
+from knox.views import LogoutView
+
 from .views import ForgotPasswordView, SetNewPasswordAPIView, VerifyEmail, \
-    CreateUserAPIView, LoginAPIView, LogoutAPIView
+    CreateUserAPIView, LoginAPIView
 
 urlpatterns = [
-    path('register/', CreateUserAPIView.as_view(), name='user_signup'),
-    path('login/', LoginAPIView.as_view(), name='user_login'),
-    path('email-verify/', VerifyEmail.as_view(), name="email-verify"),
+    path('register/', CreateUserAPIView.as_view(), name='user-signup'),
+    path('login/', LoginAPIView.as_view(), name='user-login'),
+    path('verify-email/<str:token>', VerifyEmail.as_view(), name="email-verify"),
     path('request-reset-email/', ForgotPasswordView.as_view(), name='request-reset-email'),
     path('password-reset/', SetNewPasswordAPIView.as_view(), name='password-reset-confirm'),
-    path('logout/', LogoutAPIView.as_view(), name='user_logout')
+    path('logout/', LogoutView.as_view(), name='user-logout'),
 ]

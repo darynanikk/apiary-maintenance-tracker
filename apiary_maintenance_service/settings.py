@@ -3,6 +3,8 @@ from pathlib import Path
 import datetime
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
+from rest_framework.settings import api_settings
+
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 
@@ -18,6 +20,10 @@ DEBUG = True
 
 ALLOWED_HOSTS = []
 
+CORS_ALLOWED_ORIGINS = [
+    "http://127.0.0.1:8000",
+]
+
 
 # Application definition
 
@@ -31,17 +37,19 @@ INSTALLED_APPS = [
     # third party packages
     'rest_framework',
     'phonenumber_field',
+    'corsheaders',
     'django_filters',
-    'rest_framework_simplejwt',
-    'rest_framework_simplejwt.token_blacklist',
+    'knox',
 
     'users',
-    'auth_service'
+    'auth_service',
+    'apiaries'
 ]
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -126,15 +134,15 @@ STATIC_URL = 'static/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-AUTH_USER_MODEL = 'users.User'
+AUTH_USER_MODEL = 'email'
+
 
 REST_FRAMEWORK = {
     'DEFAULT_FILTER_BACKENDS': [
             'django_filters.rest_framework.DjangoFilterBackend'
         ],
     'DEFAULT_AUTHENTICATION_CLASSES': [
-            'rest_framework_simplejwt.authentication.JWTAuthentication',
-            'rest_framework_simplejwt.authentication.JWTStatelessUserAuthentication',
+            'knox.auth.TokenAuthentication',
         ],
     'TEST_REQUEST_DAFAULT_FORMAT': 'json'
 }

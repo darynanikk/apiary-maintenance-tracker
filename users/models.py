@@ -35,6 +35,7 @@ class UserManager(BaseUserManager):
 
 
 class User(AbstractUser, PermissionsMixin):
+
     class Roles(models.TextChoices):
         USER = "user"
         COMPANY = "company"

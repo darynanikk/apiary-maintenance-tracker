@@ -1,6 +1,8 @@
-from django.contrib.sites.shortcuts import get_current_site
+from django.contrib.auth import authenticate
+from knox.models import AuthToken
 from rest_framework import serializers
-from auth_service.utils import Util
+from rest_framework.authtoken.serializers import AuthTokenSerializer
+
 from users.models import User
 
 
@@ -11,22 +13,20 @@ class ResetPasswordEmailRequestSerializer(serializers.ModelSerializer):
         model = User
         fields = ['email']
 
-
-class EmailVerificationSerializer(serializers.ModelSerializer):
-    token = serializers.CharField(max_length=555)
-
-    class Meta:
-        model = User
-        fields = ['token']
+    def validate(self, data):
+        user = User.objects.get(email=data['email'])
+        if user:
+            user.is_verified = True
+            return user
+        raise serializers.ValidationError("User with entered email does not exist. Check your inputs")
 
 
 class SetNewPasswordSerializer(serializers.ModelSerializer):
     password = serializers.CharField(min_length=6, max_length=68, write_only=True, required=True)
-    token = serializers.CharField(min_length=1, write_only=True, required=True)
 
     class Meta:
         model = User
-        fields = ['password', 'token']
+        fields = ['password']
 
 
 class LoginUserSerializer(serializers.ModelSerializer):
@@ -43,9 +43,8 @@ class LoginUserSerializer(serializers.ModelSerializer):
             'password': {'required': True}
         }
 
-    def validate(self, attrs):
-        password = attrs.get('password')
-        email = attrs.get('email')
-        validated_user = Util.get_validated_user(email, password)
-        validated_data = Util.get_access(validated_user)
-        return validated_data
+    def validate(self, data):
+        user = authenticate(**data)
+        if user and user.is_verified:
+            return user
+        raise serializers.ValidationError("Incorrect credentials or user email is not verified.")
