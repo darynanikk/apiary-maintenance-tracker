@@ -1,16 +1,18 @@
+import datetime
 from django.contrib.auth import login
 from django.contrib.sites.shortcuts import get_current_site
-from rest_framework.permissions import IsAuthenticated
+from knox.models import AuthToken
+from rest_framework.authtoken.serializers import AuthTokenSerializer
+from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.reverse import reverse
-from rest_framework import generics, views, permissions
+from rest_framework import generics, views
 from rest_framework import status
-from knox.models import AuthToken
-from knox.auth import TokenAuthentication
+from knox.views import LoginView as KnoxLoginView
 
 from auth_service.utils import Util
 from auth_service.serializers import (ResetPasswordEmailRequestSerializer,
-                                      SetNewPasswordSerializer, LoginUserSerializer)
+                                      SetNewPasswordSerializer)
 from users.models import User
 from users.serializers import UserSerializer
 
@@ -22,41 +24,43 @@ class CreateUserAPIView(views.APIView):
         serializer = self.serializer_class(data=request.data)
         serializer.is_valid(raise_exception=True)
         user = serializer.save()
-        knox_object = AuthToken.objects.create(user)
-        access_token = knox_object[1]
         current_site = get_current_site(request).domain
-        relative_link = reverse('email-verify', args=[knox_object[0].digest])
+        knox_obj = AuthToken.objects.create(user, expiry=datetime.timedelta(minutes=3))
+        relative_link = reverse('email-verify', kwargs={'token': knox_obj[0].digest})
         abs_url = f'http://{current_site}{relative_link}'
         email_body = f'Hi, {user.first_name}.Use the link below to verify your email \n{abs_url}'
         data = {'email_body': email_body, 'to_email': user.email,
                 'email_subject': 'Registration'}
         Util.send_email(data)
         response_data = {
-            'access_token': access_token,
-            'expiry': knox_object[0].expiry,
             'user': user.email
         }
         return Response(response_data, status=status.HTTP_201_CREATED)
 
 
-class LoginAPIView(generics.GenericAPIView):
-    serializer_class = LoginUserSerializer
-    authentication_classes = (TokenAuthentication,)
-    permission_classes = (IsAuthenticated,)
+class LoginAPIView(KnoxLoginView):
+    permission_classes = (AllowAny,)
 
-    def post(self, request):
-        serializer = self.serializer_class(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        user = serializer.validated_data
-        login(request, user)
-        data = {
-            "email": user.email,
-            "first_name": user.first_name,
-            "last_name": user.last_name,
-            "phone": str(user.phone),
-            "role": user.role
+    def get_post_response_data(self, request, token, instance):
+        data = super().get_post_response_data(request, token, instance)
+        data["user"].pop("password")
+        user_email = data["user"]["email"]
+        user_instance = User.objects.get(email=user_email)
+        data["user"] = {
+            "first_name": user_instance.first_name,
+            "last_name": user_instance.last_name,
+            "email": user_instance.email,
+            "phone": str(user_instance.phone),
+            "role": user_instance.role
         }
-        return Response({"user": data})
+        return data
+
+    def post(self, request, format=None):
+        serializer = AuthTokenSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        user = serializer.validated_data['user']
+        login(request, user)
+        return super(LoginAPIView, self).post(request, format=None)
 
 
 class VerifyEmail(views.APIView):
@@ -78,7 +82,8 @@ class ForgotPasswordView(views.APIView):
         serializer.is_valid(raise_exception=True)
         user = serializer.validated_data
         current_site = get_current_site(request=request).domain
-        relative_link = reverse('password-reset-confirm')
+        knox_object = AuthToken.objects.create(user)
+        relative_link = reverse('password-reset-confirm', kwargs={'token': knox_object[0].digest})
         absurl = f'http://{current_site}{relative_link}'
         email_body = f'Hi {user.first_name}. Use link below to verify your email.\n{absurl}'
         data = {'email_body': email_body, 'to_email': user.email, 'email_subject': 'Verify your email'}
@@ -88,15 +93,16 @@ class ForgotPasswordView(views.APIView):
 
 class SetNewPasswordAPIView(generics.GenericAPIView):
     serializer_class = SetNewPasswordSerializer
-    authentication_classes = (TokenAuthentication,)
-    permission_classes = (IsAuthenticated,)
 
-    def put(self, request):
+    def put(self, request, *args, **kwargs):
+        data = AuthToken.objects.filter(digest=kwargs.get('token'), expiry=datetime.timedelta(minutes=3)).first()
+        user = data.user
         body = request.data
-        user = self.request.user
         password = body['password']
         serializer = self.serializer_class(data=request.data)
         serializer.is_valid(raise_exception=True)
         user.set_password(password)
         user.save()
-        return Response({"success": "Password Reset Successfully"}, status=status.HTTP_200_OK)
+        return Response(
+            {"success": "Password Reset Successfully"},
+            status=status.HTTP_200_OK)

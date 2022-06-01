@@ -1,31 +1,26 @@
-from django.shortcuts import render
 from knox.auth import TokenAuthentication
 from rest_framework import generics, status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
 from apiaries.models import Apiary
-from apiaries.serializers import ListApiarySerializer, CreateUpdateDestroyApiarySerializer
+from apiaries.serializers import ListApiarySerializer, UpdateDestroyApiarySerializer, CreateApiarySerializer
 
 # Create your views here.
-from users.models import User
 
 
 class CreateApiaryAPIView(generics.CreateAPIView):
-    serializer_class = CreateUpdateDestroyApiarySerializer
+    serializer_class = CreateApiarySerializer
     authentication_classes = (TokenAuthentication,)
     permission_classes = (IsAuthenticated,)
 
     def post(self, request, *args, **kwargs):
         serializer = self.serializer_class(data=request.data)
         serializer.is_valid(raise_exception=True)
-        apiary = serializer.save(user=self.request.user, status="test", location={
-            'latitude': '123.0.3',
-            'longitude': '123.566', 'address': 'Kyiv'})
+        apiary = serializer.save(user=self.request.user, status="test", location={})
         data = {
             "name": apiary.name,
             "status": apiary.status,
-            "location": apiary.location
         }
         return Response(data, status=status.HTTP_201_CREATED)
 
@@ -41,7 +36,7 @@ class ListApiaryAPIView(generics.ListAPIView):
 
 
 class UpdateApiaryAPIView(generics.UpdateAPIView):
-    serializer_class = CreateUpdateDestroyApiarySerializer
+    serializer_class = UpdateDestroyApiarySerializer
     queryset = Apiary.objects.all()
     authentication_classes = (TokenAuthentication,)
     permission_classes = (IsAuthenticated,)
@@ -51,7 +46,7 @@ class UpdateApiaryAPIView(generics.UpdateAPIView):
 
 
 class DeleteApiaryAPIView(generics.DestroyAPIView):
-    serializer_class = CreateUpdateDestroyApiarySerializer
+    serializer_class = UpdateDestroyApiarySerializer
     queryset = Apiary.objects.all()
     authentication_classes = (TokenAuthentication,)
     permission_classes = (IsAuthenticated,)

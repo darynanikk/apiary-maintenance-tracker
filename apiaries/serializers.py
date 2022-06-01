@@ -2,7 +2,7 @@ from rest_framework import serializers
 from apiaries.models import Apiary
 
 
-class CreateUpdateDestroyApiarySerializer(serializers.ModelSerializer):
+class CreateApiarySerializer(serializers.ModelSerializer):
     status = serializers.ReadOnlyField()
     location = serializers.ReadOnlyField()
 
@@ -13,6 +13,24 @@ class CreateUpdateDestroyApiarySerializer(serializers.ModelSerializer):
                   'status',
                   'location',
                   ]
+
+
+class UpdateDestroyApiarySerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Apiary
+        fields = ['name',
+                  'isHidden',
+                  'status',
+                  'location',
+                  ]
+
+        extra_kwargs = {
+            'name': {'required': False},
+            'isHidden': {'required': False},
+            'status': {'required': False},
+            'location': {'required': False}
+        }
 
 
 class ListApiarySerializer(serializers.ModelSerializer):

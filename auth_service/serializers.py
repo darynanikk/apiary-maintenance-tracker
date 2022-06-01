@@ -1,7 +1,5 @@
 from django.contrib.auth import authenticate
-from knox.models import AuthToken
 from rest_framework import serializers
-from rest_framework.authtoken.serializers import AuthTokenSerializer
 
 from users.models import User
 
