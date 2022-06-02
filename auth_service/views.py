@@ -67,6 +67,8 @@ class VerifyEmail(views.APIView):
 
     def get(self, request, *args, **kwargs):
         data = AuthToken.objects.filter(digest=kwargs.get('token')).first()
+        if data is None:
+            return Response("Token is expired.")
         email = data.user
         user = User.objects.get(email=email)
         user.is_verified = True
@@ -82,7 +84,7 @@ class ForgotPasswordView(views.APIView):
         serializer.is_valid(raise_exception=True)
         user = serializer.validated_data
         current_site = get_current_site(request=request).domain
-        knox_object = AuthToken.objects.create(user)
+        knox_object = AuthToken.objects.create(user, expiry=datetime.timedelta(minutes=3))
         relative_link = reverse('password-reset-confirm', kwargs={'token': knox_object[0].digest})
         absurl = f'http://{current_site}{relative_link}'
         email_body = f'Hi {user.first_name}. Use link below to verify your email.\n{absurl}'
@@ -95,7 +97,9 @@ class SetNewPasswordAPIView(generics.GenericAPIView):
     serializer_class = SetNewPasswordSerializer
 
     def put(self, request, *args, **kwargs):
-        data = AuthToken.objects.filter(digest=kwargs.get('token'), expiry=datetime.timedelta(minutes=3)).first()
+        data = AuthToken.objects.filter(digest=kwargs.get('token')).first()
+        if data is None:
+            return Response("Token is expired.")
         user = data.user
         body = request.data
         password = body['password']
