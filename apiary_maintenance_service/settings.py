@@ -154,4 +154,6 @@ EMAIL_PORT = 587
 EMAIL_HOST_USER = 'secret'
 EMAIL_HOST_PASSWORD = 'secret'
 
+SENDGRID_API_KEY = 'secret'
+
 from .local_settings import *
