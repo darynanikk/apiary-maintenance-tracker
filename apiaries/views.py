@@ -36,17 +36,22 @@ class ListApiaryAPIView(generics.ListAPIView):
 
 
 class UpdateApiaryAPIView(generics.UpdateAPIView):
-    serializer_class = UpdateDestroyApiarySerializer
     queryset = Apiary.objects.all()
     authentication_classes = (TokenAuthentication,)
     permission_classes = (IsAuthenticated,)
 
     def put(self, request, *args, **kwargs):
-        return super(UpdateApiaryAPIView, self).put(request, *args, **kwargs)
+        queryset = self.get_queryset()
+        serializer = UpdateDestroyApiarySerializer(queryset)
+        return Response(self.kwargs.get("pk"))
 
 
 class DeleteApiaryAPIView(generics.DestroyAPIView):
-    serializer_class = UpdateDestroyApiarySerializer
     queryset = Apiary.objects.all()
     authentication_classes = (TokenAuthentication,)
     permission_classes = (IsAuthenticated,)
+
+    def destroy(self, request, *args, **kwargs):
+        queryset = self.get_queryset()
+        serializer = UpdateDestroyApiarySerializer(queryset)
+        return Response(self.kwargs.get("pk"))
