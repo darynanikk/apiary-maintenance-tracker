@@ -1,7 +1,6 @@
 from knox.auth import TokenAuthentication
-from rest_framework import generics, status
+from rest_framework import generics
 from rest_framework.permissions import IsAuthenticated
-from rest_framework.response import Response
 
 from apiaries.models import Apiary
 from apiaries.serializers import ListApiarySerializer, UpdateDestroyApiarySerializer, CreateApiarySerializer
@@ -10,48 +9,31 @@ from apiaries.serializers import ListApiarySerializer, UpdateDestroyApiarySerial
 
 
 class CreateApiaryAPIView(generics.CreateAPIView):
+    queryset = Apiary.objects.all().select_related('user')
     serializer_class = CreateApiarySerializer
     authentication_classes = (TokenAuthentication,)
     permission_classes = (IsAuthenticated,)
 
-    def post(self, request, *args, **kwargs):
-        serializer = self.serializer_class(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        apiary = serializer.save(user=self.request.user, status="test", location={})
-        data = {
-            "name": apiary.name,
-            "status": apiary.status,
-        }
-        return Response(data, status=status.HTTP_201_CREATED)
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
 
 
 class ListApiaryAPIView(generics.ListAPIView):
     serializer_class = ListApiarySerializer
-    queryset = Apiary.objects.all()
+    queryset = Apiary.objects.all().select_related('user')
     authentication_classes = (TokenAuthentication,)
     permission_classes = (IsAuthenticated,)
-
-    def get(self, request, *args, **kwargs):
-        return super(ListApiaryAPIView, self).list(request, *args, **kwargs)
 
 
 class UpdateApiaryAPIView(generics.UpdateAPIView):
     queryset = Apiary.objects.all()
+    serializer_class = UpdateDestroyApiarySerializer
     authentication_classes = (TokenAuthentication,)
     permission_classes = (IsAuthenticated,)
-
-    def put(self, request, *args, **kwargs):
-        queryset = self.get_queryset()
-        serializer = UpdateDestroyApiarySerializer(queryset)
-        return Response(self.kwargs.get("pk"))
 
 
 class DeleteApiaryAPIView(generics.DestroyAPIView):
     queryset = Apiary.objects.all()
+    serializer_class = UpdateDestroyApiarySerializer
     authentication_classes = (TokenAuthentication,)
     permission_classes = (IsAuthenticated,)
-
-    def destroy(self, request, *args, **kwargs):
-        queryset = self.get_queryset()
-        serializer = UpdateDestroyApiarySerializer(queryset)
-        return Response(self.kwargs.get("pk"))
