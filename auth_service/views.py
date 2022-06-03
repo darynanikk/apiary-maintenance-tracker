@@ -2,7 +2,6 @@ import datetime
 from django.contrib.auth import login
 from django.contrib.sites.shortcuts import get_current_site
 from knox.models import AuthToken
-from rest_framework.authtoken.serializers import AuthTokenSerializer
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.reverse import reverse
@@ -12,7 +11,7 @@ from knox.views import LoginView as KnoxLoginView
 
 from auth_service.utils import Util
 from auth_service.serializers import (ResetPasswordEmailRequestSerializer,
-                                      SetNewPasswordSerializer)
+                                      SetNewPasswordSerializer, LoginUserSerializer)
 from users.models import User
 from users.serializers import UserSerializer
 
@@ -56,7 +55,7 @@ class LoginAPIView(KnoxLoginView):
         return data
 
     def post(self, request, format=None):
-        serializer = AuthTokenSerializer(data=request.data)
+        serializer = LoginUserSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         user = serializer.validated_data['user']
         login(request, user)

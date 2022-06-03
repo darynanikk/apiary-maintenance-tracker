@@ -41,8 +41,15 @@ class LoginUserSerializer(serializers.ModelSerializer):
             'password': {'required': True}
         }
 
-    def validate(self, data):
-        user = authenticate(**data)
-        if user and user.is_verified:
-            return user
-        raise serializers.ValidationError("Incorrect credentials or user email is not verified.")
+    def validate(self, attrs):
+        email = attrs.get('email')
+        password = attrs.get('password')
+        user = authenticate(request=self.context.get('request'),
+                            email=email, password=password)
+        if not user:
+            raise serializers.ValidationError("Unable to log in with provided credentials.", code='authorization')
+        if not user.is_verified:
+            raise serializers.ValidationError("Incorrect credentials or user email is not verified.",
+                                              code='authorization')
+        attrs['user'] = user
+        return attrs
