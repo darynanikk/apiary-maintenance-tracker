@@ -145,7 +145,9 @@ REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
             'knox.auth.TokenAuthentication',
         ],
-    'TEST_REQUEST_DAFAULT_FORMAT': 'json'
+    'TEST_REQUEST_DAFAULT_FORMAT': 'json',
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.LimitOffsetPagination',
+    'PAGE_SIZE': 10
 }
 
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'

@@ -1,2 +1,0 @@
-from apiary_maintenance_service import settings
-
