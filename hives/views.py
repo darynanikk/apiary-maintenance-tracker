@@ -24,6 +24,16 @@ class ListHiveAPIView(generics.ListAPIView):
     permission_classes = (IsAuthenticated,)
 
 
+class ListUserHivesByApiaryAPIView(generics.RetrieveAPIView):
+    lookup_field = 'apiary_id'
+    serializer_class = ListHiveSerializer
+    authentication_classes = (TokenAuthentication,)
+    permission_classes = (IsAuthenticated,)
+
+    def get_queryset(self):
+        return Hive.objects.filter(apiary=self.kwargs.get('apiary_id'))
+
+
 class UpdateHiveAPIView(generics.UpdateAPIView):
     queryset = Hive.objects.all()
     serializer_class = UpdateDestroyHiveSerializer
