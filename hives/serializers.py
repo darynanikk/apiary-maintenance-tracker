@@ -28,7 +28,8 @@ class ListHiveSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Hive
-        fields = ['color',
+        fields = ['pk',
+                  'color',
                   'apiary',
                   'type',
                   'status',

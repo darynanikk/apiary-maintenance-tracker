@@ -44,7 +44,8 @@ INSTALLED_APPS = [
     'users',
     'auth_service',
     'apiaries',
-    'hives'
+    'hives',
+    'frames'
 ]
 
 MIDDLEWARE = [
