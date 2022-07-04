@@ -3,7 +3,6 @@ from .models import User
 
 
 class UserSerializer(serializers.ModelSerializer):
-    date_joined = serializers.ReadOnlyField()
 
     class Meta:
         model = User
@@ -14,10 +13,13 @@ class UserSerializer(serializers.ModelSerializer):
             'email',
             'password',
             'role',
-            'date_joined'
+            'created_at'
         )
 
-    extra_kwargs = {'password': {'write_only': True}}
+    extra_kwargs = {
+        'password': {'write_only': True},
+        'created': {'read_only': True}
+    }
 
     def create(self, validated_data):
         user = super().create(validated_data)

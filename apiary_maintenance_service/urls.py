@@ -6,5 +6,6 @@ urlpatterns = [
     path('users/', include('users.urls')),
     path('apiaries/', include('apiaries.urls')),
     path('hives/', include('hives.urls')),
-    path('frames/', include('frames.urls'))
+    path('frames/', include('frames.urls')),
+    path('chat/', include('chat.urls')),
 ]

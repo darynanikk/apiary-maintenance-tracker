@@ -45,7 +45,9 @@ INSTALLED_APPS = [
     'auth_service',
     'apiaries',
     'hives',
-    'frames'
+    'frames',
+    'chat',
+    'channels'
 ]
 
 MIDDLEWARE = [
@@ -79,6 +81,16 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'apiary_maintenance_service.wsgi.application'
+ASGI_APPLICATION = 'apiary_maintenance_service.asgi.application'
+
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'channels_redis.core.RedisChannelLayer',
+        'CONFIG': {
+            "hosts": [('127.0.0.1', 6379)],
+        },
+    },
+}
 
 
 # Database
