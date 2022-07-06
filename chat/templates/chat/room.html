@@ -5,7 +5,7 @@
   <title>Chat Rooms</title>
 </head>
 <body>
-<h4>Hi - <span id="username"></span></h4>
+<h4>Created by <span id="username"></span></h4>
 <textarea id="chat-log" cols="100" rows="20"></textarea><br>
 <input id="chat-message-input" type="text" size="100"><br>
 <input id="chat-message-submit" type="button" value="Send">
@@ -17,14 +17,14 @@
 <script>
     const room_pk = "{{ room.pk }}"
     const request_id = new Date().getTime()
-    const token = ''
+    const token = localStorage.getItem('Token')
     console.log(room_pk)
     console.log(request_id)
     console.log("request", '{{request}}')
-    const chatSocket = new WebSocket(`ws://${window.location.host}/ws/chat/`)
 
+    const chatSocket = new WebSocket(`ws://${window.location.host}/ws/chat/?token=${token}`)
 
-    chatSocket.onopen = function () {
+    chatSocket.onopen = function (e) {
         chatSocket.send(
             JSON.stringify({
                 pk: room_pk,

@@ -95,7 +95,6 @@ class RoomConsumer(ObserverModelInstanceMixin, GenericAsyncAPIConsumer):
 
     @database_sync_to_async
     def add_user_to_room(self, pk, *args, **kwargs):
-        print("scope:", self.scope)
         user: User = self.scope["user"]
         if not user.current_rooms.filter(pk=self.room_subscribe).exists():
             user.current_rooms.add(Room.objects.get(pk=pk))

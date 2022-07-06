@@ -12,8 +12,7 @@ def index(request):
     if request.method == "POST":
         name = request.POST.get("name", None)
         if name:
-            room = Room.objects.create(name=name, host=request.user)
-            print(room.pk)
+            room, _ = Room.objects.get_or_create(name=name, host=request.user)
             return HttpResponseRedirect(reverse("room", kwargs={"pk": room.pk}))
     return render(request, 'chat/index.html')
 
