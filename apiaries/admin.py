@@ -1,5 +1,6 @@
 from django.contrib import admin
 from apiaries import models
+from chat.models import Message
 
-# Register your models here.
 admin.site.register(models.Apiary)
+admin.site.register(Message)

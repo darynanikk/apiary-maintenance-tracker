@@ -1,107 +1,52 @@
+<!-- chat/templates/chat/room.html -->
+{% load static %}
 <!DOCTYPE html>
 <html>
 <head>
-  <meta charset="utf-8"/>
-  <title>Chat Rooms</title>
+    <meta charset="utf-8"/>
+    <title>Chat Room</title>
 </head>
 <body>
-<h4>Created by <span id="username"></span></h4>
-<textarea id="chat-log" cols="100" rows="20"></textarea><br>
-<input id="chat-message-input" type="text" size="100"><br>
-<input id="chat-message-submit" type="button" value="Send">
-
-<script
-    src="https://code.jquery.com/jquery-3.6.0.min.js"
-    integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4="
-    crossorigin="anonymous"></script>
-<script>
-    const room_pk = "{{ room.pk }}"
-    const request_id = new Date().getTime()
-    const token = localStorage.getItem('Token')
-    console.log(room_pk)
-    console.log(request_id)
-    console.log("request", '{{request}}')
-
-    const chatSocket = new WebSocket(`ws://${window.location.host}/ws/chat/?token=${token}`)
-
-    chatSocket.onopen = function (e) {
-        chatSocket.send(
-            JSON.stringify({
-                pk: room_pk,
-                action: "join_room",
-                request_id: request_id,
-            })
-        )
-        chatSocket.send(
-            JSON.stringify({
-                pk: room_pk,
-                action: "retrieve",
-                request_id: request_id,
-            })
-        )
-        chatSocket.send(
-            JSON.stringify({
-                pk: room_pk,
-                action: "subscribe_to_messages_in_room",
-                request_id: request_id,
-            })
-        )
-        chatSocket.send(
-            JSON.stringify({
-                pk: room_pk,
-                action: "subscribe_instance",
-                request_id: request_id,
-            })
-        )
-    }
-
-    chatSocket.onmessage = function (e) {
-        const data = JSON.parse(e.data)
-        // console.log(data)
-        // console.log('RealTime', data.data)
-        switch (data.action) {
-            case "retrieve":
-              console.log("data")
-                console.log(data.data)
-                document.getElementById('username').innerText = data.data.host.email
-                for (let mess of data.data.messages) {
-                  console.log("...")
-                    console.log(mess.text)
-                }
-
-                //setRoom(old =>data.data);
-                //setMessages(old=>data.messages);
-                break
-            case "create":
-                console.log(data.action, data.data)
-                //setMessages(old=>[...old, data])
-                break
-            default:
-                break
-        }
-    }
-
-    $('#chat-message-input').focus()
-    $('#chat-message-input').on('keyup', function (e) {
-        if (e.keyCode === 13) {  // enter, return
-            document.querySelector('#chat-message-submit').click()
-        }
-    })
-    $('#chat-message-submit').on('click', function (e) {
-        const message = $('#chat-message-input').val()
-        console.log("message", message)
-        chatSocket.send(JSON.stringify({
-            message: message,
-            action: "create_message",
-            request_id: request_id,
-        }))
-        $('#chat-message-input').val('')
-    })
-
-    chatSocket.onclose = function (e) {
-        console.error('Chat socket closed unexpectedly')
-    }
-</script>
-
+    <textarea id="chat-log" cols="100" rows="20"></textarea><br>
+    <input id="chat-message-input" type="text" size="100"><br>
+    <input id="chat-message-submit" type="button" value="Send">
+    <script src="{% static 'reconnecting-websocket.js' %}"></script>
 </body>
+    {{ room_name|json_script:"room-name" }}
+    <script>
+        const username = {{ username }}
+        const roomName = JSON.parse(document.getElementById('room-name').textContent);
+        const token = localStorage.getItem('Token')
+        console.log(`Token: ${token}`)
+        const chatSocket = new ReconnectingWebSocket(`ws://${window.location.host}/ws/chat/${roomName}/?token=${token}`)
+
+        chatSocket.onmessage = function(e) {
+            const data = JSON.parse(e.data);
+            const message = data['message'];
+            console.log(message)
+            document.querySelector('#chat-log').value += (`${message.author_email}-${message.content}` + '\n');
+        };
+
+        chatSocket.onclose = function(e) {
+            console.error('Chat socket closed unexpectedly');
+        };
+
+        document.querySelector('#chat-message-input').focus();
+        document.querySelector('#chat-message-input').onkeyup = function(e) {
+            if (e.keyCode === 13) {  // enter, return
+                document.querySelector('#chat-message-submit').click();
+            }
+        };
+
+        document.querySelector('#chat-message-submit').onclick = function(e) {
+            const messageInputDom = document.querySelector('#chat-message-input');
+            const message = messageInputDom.value;
+            chatSocket.send(JSON.stringify({
+                'message': message,
+                'command': 'new_message',
+                'from': username
+            }));
+            messageInputDom.value = '';
+        };
+    </script>
 </html>
